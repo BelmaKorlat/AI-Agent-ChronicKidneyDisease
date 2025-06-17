@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="bs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predikcija Bubrežne Bolesti</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="position-fixed top-0 end-0 p-3 z-3" style="z-index:1055;">
+            <button id="login-btn" class="btn btn-outline-primary btn-sm"><i class="bi bi-person-lock"></i> Prijavite
+                se</button>
+            <div id="logout-panel" style="display:none;">
+                <div class="d-flex flex-column align-items-start gap-1 mt-1">
+                    <span id="welcome-user" class="fw-semibold text-primary"></span>
+                    <button id="logout-btn" class="btn btn-outline-danger btn-sm"> <i class="bi bi-box-arrow-right"></i>
+                        Odjavite se</button>
+                </div>
+            </div>
+        </div>
+
+        <h1 class="text-center text-primary mb-4"><img src="logo.png" class="me-3" width="100">Predikcija bubrežne
+            bolesti</h1>
+
+        <div id="auth-section" class="container mt-4" style="display:none;">
+            <div class="row justify-content-center">
+                <div class="col-10 col-md-5 col-lg-4">
+                    <!-- Login forma -->
+                    <form id="login-form" class="mb-3 p-4 bg-white rounded-3 shadow-sm">
+                        <h5 class="mb-4 text-center">Login</h5>
+                        <input type="text" id="login-username" placeholder="Korisničko ime" required
+                            class="form-control mb-3">
+                        <input type="password" id="login-password" placeholder="Lozinka" required
+                            class="form-control mb-3">
+                        <button type="submit" class="btn btn-outline-primary w-100 mb-3">Prijavi se</button>
+                        <div class="text-center">
+                            <span>Nemate račun? <a href="#" id="show-register">Registrujte se</a></span>
+                        </div>
+                    </form>
+                    <!-- Registracija forma -->
+                    <form id="register-form" class="mb-3 p-4 bg-white rounded-3 shadow-sm" style="display:none;">
+                        <h5 class="mb-4 text-center">Registracija</h5>
+                        <input type="text" id="reg-ime" placeholder="Ime" required class="form-control mb-2">
+                        <input type="text" id="reg-prezime" placeholder="Prezime" required class="form-control mb-2">
+                        <input type="text" id="reg-username" placeholder="Korisničko ime" required
+                            class="form-control mb-3">
+                        <input type="password" id="reg-password" placeholder="Lozinka" required
+                            class="form-control mb-3">
+                        <input type="password" id="reg-password-confirm" placeholder="Potvrdi lozinku" required
+                            class="form-control mb-3">
+                        <button type="submit" class="btn btn-outline-success w-100 mb-3">Registruj se</button>
+                        <div class="text-center">
+                            <span>Već imate račun? <a href="#" id="show-login">Prijavite se</a></span>
+                        </div>
+                    </form>
+                    <div id="auth-message" class="mt-2 text-danger text-center"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forma -->
+        <form id="prediction-form" class="bg-white p-4 rounded shadow-sm col-md-6 mx-auto">
+            <div class="mb-3">
+                <label for="prediction-algorithm" class="form-label">Odaberi model za predikciju:</label>
+                <select id="prediction-algorithm" class="form-select">
+                    <option value="RandomForest" selected>Random Forest</option>
+                    <option value="LogisticRegression">Logistic Regression</option>
+                    <option value="KNearestNeighbors">K-Nearest Neighbors (KNN)</option>
+                    <option value="SupportVectorMachines">Support Vector Machines (SVM)</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="age" class="form-label">Starost:</label>
+                <input type="number" id="age" name="age" class="form-control" placeholder="0-100">
+                <div class="text-danger small" id="ageError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="bp" class="form-label">Krvni pritisak:
+                </label>
+                <input type="number" id="bp" name="bp" class="form-control" placeholder="60-200">
+                <div class="text-danger small" id="bpError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="bgr" class="form-label">
+                    <i class="bi bi-question-circle ms-1 align-middle me-1 info-icon" data-bs-toggle="tooltip"
+                        title="Glukoza u krvi. Normalno 70-140 mg/dL. Više može ukazivati na dijabetes."></i>
+                    Nivo glukoze u krvi:
+                </label>
+                <input type="number" id="bgr" name="bgr" class="form-control" placeholder="70-500">
+                <div class="text-danger small" id="bgrError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="bu" class="form-label">
+                    <i class="bi bi-question-circle ms-1 align-middle me-1" data-bs-toggle="tooltip"
+                        title="Urea u krvi. Normalno 7-20 mg/dL. Povišeno kod bubrežnih poremećaja."></i>
+                    Urea u krvi:</label>
+                <input type="number" id="bu" name="bu" class="form-control" placeholder="1-200">
+                <div class="text-danger small" id="buError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="sc" class="form-label">
+                    <i class="bi bi-question-circle ms-1 align-middle me-1" data-bs-toggle="tooltip"
+                        title="Kreatinin. Normalno 0.6-1.3 mg/dL.Više znači slabiju funkciju bubrega."></i>
+                    Kreatinin u serumu:</label>
+                <input type="number" step="0.01" id="sc" name="sc" class="form-control" placeholder="0.1-20">
+                <div class="text-danger small" id="scError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="hemo" class="form-label">
+                    <i class="bi bi-question-circle ms-1 align-middle me-1" data-bs-toggle="tooltip"
+                        title="Hemoglobin u krvi. Normalno 12-18 g/dL. Nisko može ukazivati na anemiju."></i>
+                    Hemoglobin:</label>
+                <input type="number" id="hemo" name="hemo" class="form-control" placeholder="3-25">
+                <div class="text-danger small" id="hemoError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="pcv" class="form-label">
+                    <i class="bi bi-question-circle ms-1 align-middle me-1" data-bs-toggle="tooltip"
+                        title="Hematokrit. Odnos zapremine crvenih krvnih zrnaca. Normalno 36-54%."></i>
+                    Hematokrit:</label>
+                <input type="number" id="pcv" name="pcv" class="form-control" placeholder="10-54">
+                <div class="text-danger small" id="pcvError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="sg" class="form-label">
+                    <i class="bi bi-question-circle ms-1 align-middle me-1" data-bs-toggle="tooltip"
+                        title="Koncentracija urina. Normalno 1.010–1.030. Van tog raspona može ukazivati na poremećaj funkcije bubrega."></i>
+                    Specifična težina urina:</label>
+                <input type="number" step="0.001" id="sg" name="sg" class="form-control" placeholder="1.000-1.050">
+                <div class="text-danger small" id="sgError"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="al" class="form-label">
+                    <i class="bi bi-question-circle ms-1 align-middle me-1" data-bs-toggle="tooltip"
+                        title="Protein u mokraći. Normalno 0. Više može ukazivati na oštećenje bubrega."></i>
+                    Albumin:</label>
+                <input type="number" id="al" name="al" class="form-control" placeholder="0-10">
+                <div class="text-danger small" id="alError"></div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="htn" class="form-label">Hipertenzija:</label>
+                    <select id="htn" name="htn" class="form-select">
+                        <option value="" disabled selected>Odaberite...</option>
+                        <option value="no">Ne</option>
+                        <option value="yes">Da</option>
+                    </select>
+                    <div class="text-danger small" id="htnError"></div>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="dm" class="form-label">Dijabetes:</label>
+                    <select id="dm" name="dm" class="form-select">
+                        <option value="" disabled selected>Odaberite...</option>
+                        <option value="yes">Da</option>
+                        <option value="no">Ne</option>
+                    </select>
+                    <div class="text-danger small" id="dmError"></div>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="appet" class="form-label">Apetit:</label>
+                    <select id="appet" name="appet" class="form-select">
+                        <option value="" disabled selected>Odaberite...</option>
+                        <option value="good">Dobar</option>
+                        <option value="poor">Loš</option>
+                    </select>
+                    <div class="text-danger small" id="appetError"></div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary w-45">
+                    <i class="bi bi-search"></i> Analiziraj
+                </button>
+                <button type="reset" class="btn btn-secondary">
+                    <i class="bi bi-arrow-counterclockwise"></i> Resetuj unos
+                </button>
+            </div>
+            <div class="text-center mt-4 mb-4" id="result" style="display: none;">
+            </div>
+            <div id="pdf-clean-result" style="display:none;"></div>
+            <div id="pdf-export-wrapper" class="text-center mt-3" style="display: none;">
+                <button id="download-pdf-btn" class="btn btn-outline-danger me-2">
+                    <i class="bi bi-file-earmark-pdf"></i> Preuzmi kao PDF
+                </button>
+                <a id="email-link" class="btn btn-outline-primary" href="#" target="_blank">
+                    <i class="bi bi-envelope"></i> Podijeli e-mailom
+                </a>
+            </div>
+
+        </form>
+
+        <div class="text-center mt-4">
+            <!-- Dugme za objašnjenje stavki -->
+            <button class="btn btn-primary w-50" data-bs-toggle="modal" data-bs-target="#explanationModal">
+                <i class="bi bi-info-circle"></i> Objašnjenje stavki
+            </button>
+        </div>
+
+        <!-- Dugme za prikaz grafa rezultata -->
+        <div class="text-center mt-4 mb-4">
+            <button class="btn btn-primary w-50" data-bs-toggle="modal" data-bs-target="#resultChartModal">
+                <i class="bi bi-pie-chart"></i> Prikaz grafa rezultata
+            </button>
+        </div>
+
+        <!-- Modal za objašnjenje stavki -->
+        <div class="modal fade" id="explanationModal" tabindex="-1" aria-labelledby="explanationModalLabel"
+            aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center">
+                        <h5 class="modal-title text-center" id="explanationModalLabel">Objašnjenje stavki</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <dl class="row">
+                            <dt class="col-sm-5">Starost</dt>
+                            <dd class="col-sm-7">
+                                Godine pacijenta. Veći rizik od bubrežnih bolesti povezan je sa starijom životnom dobi.
+                            </dd>
+
+                            <dt class="col-sm-5">Krvni pritisak (BP)</dt>
+                            <dd class="col-sm-7">
+                                Mjeri silu kojom krv djeluje na zidove krvnih sudova. Povišen krvni pritisak
+                                (hipertenzija) može oštetiti bubrege.
+                                <span class="badge bg-light text-dark border">mmHg</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Nivo glukoze u krvi (BGR)</dt>
+                            <dd class="col-sm-7">
+                                Koncentracija šećera (glukoze) u krvi. Povišene vrijednosti mogu ukazivati na dijabetes.
+                                <span class="badge bg-light text-dark border">mg/dL</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Urea u krvi (BU)</dt>
+                            <dd class="col-sm-7">
+                                Otpadni produkt razgradnje proteina, izlučuje se bubrezima. Povišene vrijednosti ukazuju
+                                na slabiju funkciju bubrega.
+                                <span class="badge bg-light text-dark border">mg/dL</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Kreatinin u serumu (SC)</dt>
+                            <dd class="col-sm-7">
+                                Otpadni produkt, čija povišena vrijednost ukazuje na slabiju filtraciju bubrega.
+                                <span class="badge bg-light text-dark border">mg/dL</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Hemoglobin (g/dL)</dt>
+                            <dd class="col-sm-7">
+                                Protein u crvenim krvnim zrncima koji prenosi kisik. Nizak hemoglobin može ukazivati na
+                                anemiju.
+                                <span class="badge bg-light text-dark border">g/dL</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Hematokrit (PCV)</dt>
+                            <dd class="col-sm-7">
+                                Postotak zapremine krvi koji zauzimaju crvena krvna zrnca. Smanjen kod anemije i
+                                bubrežnih bolesti.
+                                <span class="badge bg-light text-dark border">%</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Specifična težina urina (STU)</dt>
+                            <dd class="col-sm-7">
+                                Specifična težina urina (STU):</strong> Mjeri koncentraciju urina. Snižene ili povišene
+                                vrijednosti mogu ukazivati na oštećenje bubrega.
+                                <span class="badge bg-light text-dark border">-</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Albumin</dt>
+                            <dd class="col-sm-7">
+                                Prisutnost albumina u urinu često znači da su Protein koji normalno nije prisutan u
+                                urinu. Prisutnost albumina može ukazivati na oštećenje bubrega.
+                                <span class="badge bg-light text-dark border">g/dL</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Hipertenzija (HTN)</dt>
+                            <dd class="col-sm-7">
+                                Povišen krvni pritisak - da/ne.
+                                Hipertenzija je i uzrok i posljedica bubrežnih bolesti.
+                            </dd>
+
+                            <dt class="col-sm-5">Dijabetes</dt>
+                            <dd class="col-sm-7">
+                                Prisutnost dijabetesa - da/ne. Dijabetes je jedan od najčešćih
+                                uzroka oštećenja bubrega, naročito ako je slabije regulisan.
+                            </dd>
+
+                            <dt class="col-sm-5">Apetit</dt>
+                            <dd class="col-sm-7">
+                                Stanje apetita, indikator opšteg zdravlja.
+                            </dd>
+                        </dl>
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i> Ove informacije su edukativne prirode i ne zamjenjuju
+                            savjet ljekara.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal za graf rezultata -->
+        <div class="modal fade" id="resultChartModal" tabindex="-1" aria-labelledby="resultChartModalLabel"
+            aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered custom-modal">
+                <div class="modal-content">
+                    <div class="modal-header justify-content-center">
+                        <h5 class="modal-title text-center" id="resultChartModalLabel">Graf prikaza rezultata</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <canvas id="resultChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-section" style="display:none;">
+            <!-- Izbor algoritma i hiperparametra -->
+            <div class="col-md-6 mx-auto mb-4 bg-white p-4 rounded shadow-sm">
+                <div class="mb-3">
+                    <label for="ml-algorithm" class="form-label">Odaberi algoritam:</label>
+                    <select id="ml-algorithm" class="form-select">
+                        <option value="RandomForest" selected>Random Forest</option>
+                        <option value="LogisticRegression">Logistic Regression</option>
+                        <option value="KNearestNeighbors">K-Nearest Neighbors (KNN)</option>
+                        <option value="SupportVectorMachines">Support Vector Machines (SVM)</option>
+                    </select>
+                </div>
+
+                <div id="hyperparams-section" class="mb-3">
+                    <!-- Hiperparametri - prikazat će se dinamički prema izboru algoritma -->
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button id="retrain-button" class="btn btn-primary w-45">
+                        <i class="bi bi-arrow-repeat"></i> Treniraj model
+                    </button>
+                    <div>
+                        <input type="file" id="import-csv-btn" style="display: none;" lang="bs" accept=".csv"
+                            onchange="updateFileName()">
+                        <button type="button" class="btn btn-secondary w-100"
+                            onclick="document.getElementById('import-csv-btn').click();">
+                            <i class="bi bi-upload"></i> Odaberi datoteku
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Tablica za prikaz rezultata više modela -->
+            <div id="results-table-section" class="mt-4" style="display:none;">
+                <h5>Usporedba rezultata treniranih modela</h5>
+                <table id="results-table" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Accuracy</th>
+                            <th>Precision (ckd)</th>
+                            <th>Recall (ckd)</th>
+                            <th>F1 (ckd)</th>
+                            <th>Precision (notckd)</th>
+                            <th>Recall (notckd)</th>
+                            <th>F1 (notckd)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Redovi se dinamički dodaju iz JS-a -->
+                    </tbody>
+                </table>
+                <button id="export-csv-btn" class="btn btn-outline-primary mb-2" style="display:none;">
+                    <i class="bi bi-download"></i> Spremi sve rezultate (CSV)
+                </button>
+                <!-- Bar chart canvas -->
+                <div class="results-card p-4 rounded shadow-sm bg-white mx-auto card-bg" style="max-width: 650px;">
+                    <canvas id="dynamicBarChart"></canvas>
+
+                    <div id="metric-buttons" class="d-flex flex-wrap gap-2 justify-content-center mt-2 mb-3">
+                        <button class=" btn btn-outline-primary" data-metric="accuracy">Accuracy</button>
+                        <button class="btn btn-outline-primary" data-metric="precision_ckd">Precision (ckd)</button>
+                        <button class="btn btn-outline-primary" data-metric="recall_ckd">Recall (ckd)</button>
+                        <button class="btn btn-outline-primary" data-metric="f1_ckd">F1 (ckd)</button>
+                        <button class="btn btn-outline-primary" data-metric="precision_notckd">Precision
+                            (notckd)</button>
+                        <button class="btn btn-outline-primary" data-metric="recall_notckd">Recall (notckd)</button>
+                        <button class="btn btn-outline-primary" data-metric="f1_notckd">F1 (notckd)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-lg-start"
+        style="background: linear-gradient(90deg, #f4f6fa 0%, #e9ecfa 100%); margin-top: 3rem; box-shadow: 0 -2px 8px #ddd;">
+        <section>
+            <div class="container">
+                <div class="row justify-content-center pt-4 pb-3">
+                    <div class="col-lg-4 col-md-6 mb-3 text-md-start text-center">
+                        <h6 class="fw-bold mb-3">
+                            <img src="logo.png" alt="Logo"
+                                style="height:32px; vertical-align:middle; margin-right:7px;">
+                            PREDIKCIJA BUBREŽNE BOLESTI
+                        </h6>
+                        <p class="mb-1">
+                            Ova aplikacija pomaže korisnicima da procijene rizik od hroničnih bubrežnih bolesti
+                            koristeći medicinske parametre.
+                        </p>
+                        <span style="font-size:12px;">Rezultati su informativni i ne zamjenjuju savjet ljekara.</span>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-3 text-md-start text-center">
+                        <h6 class="fw-bold mb-3">AKADEMSKE INFORMACIJE</h6>
+                        <p><i class="fas fa-university me-2"></i> Fakultet informacijskih tehnologija</p>
+                        <p><i class="fas fa-calendar-alt me-2"></i> Akademska godina: 2024/2025</p>
+                        <p><i class="fas fa-envelope me-2"></i> belma.korlat@edu.fit.ba</p>
+                    </div>
+                    <div class="col-lg-4 col-md-12 mb-3 text-md-start text-center">
+                        <h6 class="fw-bold mb-3">PRATITE NAS</h6>
+                        <a href="#" class="text-primary me-2 fs-4"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-danger me-2 fs-4"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-info me-2 fs-4"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <hr class="my-2 w-100" style="border-color: rgba(0,0,0,0.08);">
+        <div class="text-center p-3" style="background-color:rgba(0, 0, 0, 0.04);font-size:13px;">
+            © 2025 Predikcija bubrežne bolesti | Akademska aplikacija
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
